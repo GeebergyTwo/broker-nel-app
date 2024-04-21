@@ -115,7 +115,7 @@ router.post('/saveCryptoPayments', async (request, response) => {
 router.post('/payment', async (req, res) => {
   try {
     const { data } = req.body;
-    const API_KEY = 'CZ4E5VS-3SFM8KZ-JMPV0YK-1SWG0YX';
+    const API_KEY = 'ANAVJWM-2GKMRZJ-GV6RDW4-J1N753D';
 
     const response = await axios.post('https://api.nowpayments.io/v1/payment', data, {
       headers: {
