@@ -7,7 +7,8 @@ const { MongoClient } = require('mongodb');
 const cron = require('node-cron');
 const axios = require('axios');
 
-const uri = "mongodb+srv://nexusfxinvestmentblog:nexusfxpassword@nexusfx.mjiu6l6.mongodb.net/userData?retryWrites=true&w=majority";
+const uri = "mongodb+srv://minterproorg:MintOrg1411@broker.ii4wb.mongodb.net/userData?retryWrites=true&w=majority";
+// const uri = "mongodb+srv://nexusfxinvestmentblog:nexusfxpassword@nexusfx.mjiu6l6.mongodb.net/userData?retryWrites=true&w=majority";
 
 async function connectToMongoDB() {
   try {
@@ -77,11 +78,11 @@ router.post("/addUser", async (request, response) => {
 const PaymentCallbackSchema = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now }, // Timestamp of the callback
   userID: String,
-  payment_id: String,
   payment_status: String,
   pay_address: String,
   price_amount: Number,
-  order_description: String
+  paymentID: String,
+  description: String,
 });
 
 // Create model for payment callback data
@@ -115,7 +116,7 @@ router.post('/saveCryptoPayments', async (request, response) => {
 router.post('/payment', async (req, res) => {
   try {
     const { data } = req.body;
-    const API_KEY = 'CZ4E5VS-3SFM8KZ-JMPV0YK-1SWG0YX';
+    const API_KEY = 'ANAVJWM-2GKMRZJ-GV6RDW4-J1N753D';
 
     const response = await axios.post('https://api.nowpayments.io/v1/payment', data, {
       headers: {
@@ -131,41 +132,23 @@ router.post('/payment', async (req, res) => {
   }
 });
 // Callback endpoint (crypto)
-
-router.post('/crypto-callback', async (req, res) => {
-  try {
-    const { data } = req.body;
-
-    res.json(data);
-    console.log(data);
-  } catch (error) {
-    console.error('Error proxying request:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-// 
 // Backend (Express) - Route to Add Participants
-router.post('/addParticipant', async (req, res) => {
+router.post('/debitUser', async (req, res) => {
   try {
       const { userId, fee } = req.body;
       // update user balance before adding them
       await User.findOneAndUpdate(
         { userId: userId },
-        { $inc: { dailyDropBalance: -fee} }, // Deduct the fee from the balance
+        { $inc: { balance: -fee} }, // Deduct the fee from the balance
         { new: true } // To return the updated user document
       );
-  
-      // Check if the user exists and the balance was updated
-      
-       // Save participant to the "raffleParticipants" collection in MongoDB
-       await RaffleParticipant.create({ userId, category: 'participant' });
-       res.status(200).json({ message: 'Fee deducted successfully'});
       
   } catch (error) {
       console.error('Error adding participant:', error);
       res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 
 
@@ -362,96 +345,6 @@ router.post("/updateBalance", async (request, response) => {
   }
 });
 
-// UPDATE INFO AFTER PAY
-// update user data
-router.post("/updateInfoAfterPay", async (request, response) => {
-  const userDetails = new User(request.body);
-  const userId = userDetails.userId;
-  const deposit = userDetails.deposit;
-  const dailyDropBalance = userDetails.dailyDropBalance;
-  const referralsBalance = userDetails.referralsBalance;
-  const addAmount = userDetails.addAmount;
-  const amountToAdd = userDetails.amountToAdd;
- 
-  try {
-    const doesDataExist = await User.findOne({ userId: userId});
-    try {
-  
-        if(doesDataExist){
-          await User.updateOne(
-            { userId: userId },
-            { $set: { deposit,
-              isUserActive: true,
-              dailyDropBalance,
-              referralRedeemed: true,
-              referralsBalance,
-              hasPaid: true },
-              $inc: { weeklyEarnings: referralsBalance } }
-          );
-          response.send({"status": "successful", "referrerData" : doesDataExist})
-      }
-      else{
-        response.send({"status": "failed",})
-      }
-     
-      
-      
-    } catch (error) {
-      response.send(error);
-    }
-    
-  } catch (error) {
-    response.status(500).send(error);
-  }
-});
-
-// UPDATE BALANCE AFTER TASK
-
-// 
-
-
-//DEBIT USER AFTER WITHDRAWAL
-// updating user details after withdrawal
-// update user data
-router.post("/updateOnDebit", async (request, response) => {
-  const userDetails = new User(request.body);
-  const userId = userDetails.userId;
-  const adRevenue = userDetails.adRevenue;
-  const referralsBalance = userDetails.referralsBalance;
-  const dailyDropBalance = userDetails.dailyDropBalance;
-  const accountLimit = userDetails.accountLimit;
- 
-  try {
-    const doesDataExist = await User.findOne({ userId: userId});
-    try {
-   
-  
-      // Example 2: Incrementing referredUsers field
-      if(doesDataExist){
-          await User.updateOne(
-            { userId: userId },
-            { $set: { adRevenue,
-              referralsBalance,
-              dailyDropBalance,
-              accountLimit},
-              $inc: { weeklyEarnings: referralsBalance } }
-          );
-        
-    
-        response.send({"status": "successful", "referrerData" : doesDataExist})
-      }
-      else{
-        response.send({"status": "failed",})
-      }
-      
-    } catch (error) {
-      response.send(error);
-    }
-    
-  } catch (error) {
-    response.status(500).send(error);
-  }
-});
 
 // CREDIT REFERRER AFTER PAY
 router.post("/creditReferrer", async (request, response) => {
@@ -558,12 +451,31 @@ const transactionSchema = new mongoose.Schema({
   userID: String,
   status: String,
   timestamp: Date,
-  transactionType: String,
-  paymentID: String
+  transactionsType: String,
+  paymentID: String,
+  description: String,
 });
 
 // Create a model based on the schema
 const Transaction = mongoose.model('Transaction', transactionSchema, 'transactions');
+
+const WalletAddressSchema = new mongoose.Schema({
+  type: {
+    type: String,
+    required: true, // e.g., 'tether', 'bitcoin', etc.
+    unique: true
+  },
+  address: {
+    type: String,
+    required: true
+  },
+  memo: {
+    type: String, // Optional, for coins like USDT that use memo
+    default: ''
+  }
+});
+
+const WalletAddress = mongoose.model('WalletAddress', WalletAddressSchema);
 
 // Define a route to handle transaction creation
 router.post('/createTransactions', async (request, response) => {
@@ -577,11 +489,22 @@ router.post('/createTransactions', async (request, response) => {
     await newTransaction.save();
 
     response.status(201).json({ message: 'Transaction document written' });
+    console.error('document added successfully');
   } catch (error) {
     console.error('Error adding transaction document: ', error);
     response.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+router.get('/fetchWallets', async (req, res) => {
+  try {
+    const walletAddresses = await WalletAddress.find(); // Fetch all wallet addresses
+    res.status(200).json(walletAddresses); // Return as JSON array
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 
 // GET USER TRANSACTIONS
 // Define a route to get user transactions
@@ -591,7 +514,6 @@ router.get('/getUserTransactions', async (request, response) => {
   try {
     // Create a query to filter transactions by the user's ID
     const userTransactions = await Transaction.find({ userID });
-
     response.status(200).json(userTransactions);
   } catch (error) {
     console.error('Error fetching user transactions: ', error);
@@ -604,7 +526,7 @@ router.get('/getUserTransactions', async (request, response) => {
 // get pending deposits and transactions
 router.get('/getBtcDeposits', async (req, res) => {
   try {
-    const btcDeposits = await PaymentCallback.find({order_description: 'Crypto Deposit'});
+    const btcDeposits = await PaymentCallback.find({description: 'Deposit'});
     res.json(btcDeposits);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
@@ -627,37 +549,9 @@ router.put('/updatePaymentStatusAndDelete/:transactionId', async (request, respo
 
     if(newStatus === 'success'){
       const currentUser = await User.findOne({ userId });
-      const currentUserReferrerId = currentUser.referredBy;
-      const currentUserReferrer = await User.findOne({ userId: currentUserReferrerId });
-      
+
   
       const currentUserIsActive = currentUser.isUserActive;
-      const currentUserReferralRedeemed = currentUser.referralRedeemed;
-      const currentUserReferrerTotalReferrals = currentUserReferrer ? currentUserReferrer.totalReferrals : null;
-  
-  
-      // Check if the referral commission has been redeemed
-      if (!currentUserReferralRedeemed && currentUserReferrerId !== 'none') {
-        // Calculate commission based on referral tier
-        let commissionRate = 0.17; // Default commission rate for tier 0
-        if (currentUserReferrerTotalReferrals !== null) {
-          if (currentUserReferrerTotalReferrals >= 9) commissionRate = 0.3;
-          else if (currentUserReferrerTotalReferrals >= 6) commissionRate = 0.25;
-          else if (currentUserReferrerTotalReferrals >= 3) commissionRate = 0.20;
-        }
-        // note that this commission is coming from a crypto account
-        const commission = commissionRate * (currentUserReferrer.role === 'crypto' ? 20 : 14000);
-        const revenueAdd = currentUserReferrer.role === 'crypto' ? 2 : 1333;
-  
-        // Update referrer's commission
-        await User.updateOne(
-          { userId: currentUserReferrerId },
-          {
-            $inc: { referralsCount: 1, totalReferrals: 1, referralsBalance: commission, referredUsers: -1, weeklyEarnings: commission, reserveAccountLimit: revenueAdd }
-          }
-        );
-      }
-  
       // Update current user's account balance
       
       if (!currentUserIsActive) {
@@ -682,7 +576,7 @@ router.put('/updatePaymentStatusAndDelete/:transactionId', async (request, respo
   
     }
     // Delete the document
-    await PaymentCallback.deleteOne({ payment_id : transactionId });
+    await PaymentCallback.deleteOne({ paymentID : transactionId });
 
     response.sendStatus(200); // Respond with success status
   } catch (error) {
@@ -698,7 +592,7 @@ router.put('/updatePaymentStatusAndDelete/:transactionId', async (request, respo
 // get pending deposits and transactions
 router.get('/getBtcFundings', async (req, res) => {
   try {
-    const btcDeposits = await PaymentCallback.find({order_description: 'Crypto Fund'});
+    const btcDeposits = await PaymentCallback.find({description: 'Deposit'});
     res.json(btcDeposits);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
@@ -718,20 +612,10 @@ router.put('/updateUserBalance/:transactionId', async (request, response) => {
       { status: newStatus },
       { new: true }
     );
-
-    // Update current user's account balance
-      if(newStatus === 'success'){
-        await User.updateOne(
-          { userId },
-          {
-            $inc: { referralsBalance: price_amount, weeklyReferrals: price_amount }
-          }
-        );
-      }
       
 
     // Delete the document
-    await PaymentCallback.deleteOne({ payment_id : transactionId });
+    await PaymentCallback.deleteOne({ paymentID : transactionId });
 
     response.sendStatus(200); // Respond with success status
   } catch (error) {
@@ -745,7 +629,7 @@ router.put('/updateUserBalance/:transactionId', async (request, response) => {
 // get pending deposits and transactions
 router.get('/getBtcWithdrawals', async (req, res) => {
   try {
-    const btcDeposits = await PaymentCallback.find({order_description: 'Crypto Withdrawal'});
+    const btcDeposits = await PaymentCallback.find({description: 'Withdrawal'});
     res.json(btcDeposits);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
@@ -778,7 +662,7 @@ router.put('/updateUserWithdrawal/:transactionId', async (request, response) => 
       
 
     // Delete the document
-    await PaymentCallback.deleteOne({ payment_id : transactionId });
+    await PaymentCallback.deleteOne({ paymentID : transactionId });
 
     response.sendStatus(200); // Respond with success status
   } catch (error) {
@@ -787,84 +671,6 @@ router.put('/updateUserWithdrawal/:transactionId', async (request, response) => 
   }
 });
 
-// handling crypto account activation
-router.put('/updatePaymentStatusAndDelete/:transactionId', async (request, response) => {
-  try {
-    const { transactionId } = request.params;
-    const { newStatus, userId } = request.body;
-
-    // Update payment status in the database
-    await Transaction.findOneAndUpdate(
-      { paymentID: transactionId},
-      { status: newStatus },
-      { new: true }
-    );
-
-    if(newStatus === 'success'){
-      const currentUser = await User.findOne({ userId });
-      const currentUserReferrerId = currentUser.referredBy;
-      const currentUserReferrer = await User.findOne({ userId: currentUserReferrerId });
-      
-  
-      const currentUserIsActive = currentUser.isUserActive;
-      const currentUserReferralRedeemed = currentUser.referralRedeemed;
-      const currentUserReferrerTotalReferrals = currentUserReferrer ? currentUserReferrer.totalReferrals : null;
-  
-  
-      // Check if the referral commission has been redeemed
-      if (!currentUserReferralRedeemed && currentUserReferrerId !== 'none') {
-        // Calculate commission based on referral tier
-        let commissionRate = 0.17; // Default commission rate for tier 0
-        if (currentUserReferrerTotalReferrals !== null) {
-          if (currentUserReferrerTotalReferrals >= 9) commissionRate = 0.3;
-          else if (currentUserReferrerTotalReferrals >= 6) commissionRate = 0.25;
-          else if (currentUserReferrerTotalReferrals >= 3) commissionRate = 0.20;
-        }
-        // note that this commission is coming from a crypto account
-        const commission = commissionRate * (currentUserReferrer.role === 'crypto' ? 20 : 14000);
-        const revenueAdd = currentUserReferrer.role === 'crypto' ? 2 : 1333;
-  
-        // Update referrer's commission
-        await User.updateOne(
-          { userId: currentUserReferrerId },
-          {
-            $inc: { referralsCount: 1, totalReferrals: 1, referralsBalance: commission, referredUsers: -1, weeklyEarnings: commission, reserveAccountLimit: revenueAdd, dailyDropBalance: 15 }
-          }
-        );
-      }
-  
-      // Update current user's account balance
-      
-      if (!currentUserIsActive) {
-        // Update user's balance after account activation
-        await User.updateOne(
-          { userId },
-          {
-            $set: { isUserActive: true, referralRedeemed: true, hasPaid: true },
-            $inc: { deposit: 20, dailyDropBalance: 10 }
-          }
-        );
-      } else {
-        // Update user's balance after account activation (without dailyDropBalance increment)
-        await User.updateOne(
-          { userId },
-          {
-            $set: { isUserActive: true, referralRedeemed: true, hasPaid: true },
-            $inc: { deposit: 20 }
-          }
-        );
-      }
-  
-    }
-    // Delete the document
-    await PaymentCallback.deleteOne({ payment_id : transactionId });
-
-    response.sendStatus(200); // Respond with success status
-  } catch (error) {
-    console.error('Error updating payment status and deleting document:', error);
-    response.status(500).send('Error updating payment status and deleting document');
-  }
-});
 
 // ...
 router.delete("/userDetail", async (request, response) => { 
@@ -873,6 +679,23 @@ router.delete("/userDetail", async (request, response) => {
     response.send(users);
   } catch (error) {
     response.status(500).send(error);
+  }
+});
+
+// Define a schema and model
+const scriptSchema = new mongoose.Schema({
+  src: String,
+});
+
+const Script = mongoose.model('Script', scriptSchema);
+
+// Fetch the script URL
+router.get('/script', async (req, res) => {
+  try {
+    const script = await Script.findOne(); // Fetch one script
+    res.json(script);
+  } catch (error) {
+    res.status(500).send(error);
   }
 });
 
