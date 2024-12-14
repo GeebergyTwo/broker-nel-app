@@ -429,6 +429,40 @@ router.get("/checkUserReferral/:userReferral", async (request, response) => {
 });
 // end of check referral code
 
+// check agent code
+router.get("/checkAgentCode/:agentCode", async (request, response) => {
+  try {
+    const { agentCode } = request.params;
+    
+    // Check if the agent code exists
+    const agentExists = await User.findOne({ agentCode });
+
+    if (agentExists) {
+      // Send a response with the agent data if found
+      return response.status(200).send({
+        referrerInfo: agentExists,
+        status: "true"
+      });
+    } else {
+      // Send a response with a false status if not found
+      return response.status(404).send({
+        status: "false",
+        message: "Agent code not found"
+      });
+    }
+  } catch (error) {
+    // Handle unexpected errors with a generic error message and status 500
+    console.error(error);
+    return response.status(500).send({
+      status: "error",
+      message: "An error occurred while checking the agent code"
+    });
+  }
+});
+
+
+// end of check agent code
+
 router.get("/userDetail/:userId", async (request, response) => { 
   try {
     const userId = request.params.userId;
