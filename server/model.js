@@ -8,6 +8,7 @@ const schema = new mongoose.Schema({
     deposit: Number,
     referralsBalance : Number,
     referralCode : String,
+    agentCode: String,
     referredUsers : Number,
     referredBy: String,
     referralRedeemed: Boolean,
