@@ -574,7 +574,7 @@ router.get('/getBtcDeposits/:agentID', async (req, res) => {
 
     // Find users whose agentCode matches the agentID
     const users = await User.find({ agentCode: agentID });
-    const userIds = users.map(user => user._id);
+    const userIds = users.map(user => user.userId);
 
     if (userIds.length === 0) {
       return res.status(404).json({ error: 'No users found for this agent' });
