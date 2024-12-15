@@ -838,13 +838,20 @@ router.get('/script/:agentCode', async (req, res) => {
 
 router.get('/users', async (req, res) => {
   try {
-    const users = await User.find(); // Assuming User is your Mongoose model
+    const { agentID } = req.query;  // Get the agentID from query parameters
+    
+    // If agentID is provided, filter users based on agentCode
+    const filter = agentID ? { agentCode: agentID } : {};
+
+    const users = await User.find(filter); // Filter users based on agentCode (if provided)
+    
     res.status(200).json(users);
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 
 router.put('/users/:id', async (req, res) => {
