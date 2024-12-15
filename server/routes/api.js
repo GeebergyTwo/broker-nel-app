@@ -136,19 +136,26 @@ router.post('/payment', async (req, res) => {
 // Backend (Express) - Route to Add Participants
 router.post('/debitUser', async (req, res) => {
   try {
-      const { userId, fee } = req.body;
-      // update user balance before adding them
-      await User.findOneAndUpdate(
-        { userId: userId },
-        { $inc: { balance: -fee} }, // Deduct the fee from the balance
-        { new: true } // To return the updated user document
-      );
-      
+    const { userId, fee } = req.body;
+
+    // Update user balance
+    const updatedUser = await User.findOneAndUpdate(
+      { userId: userId },
+      { $inc: { balance: -fee } }, // Deduct the fee from the balance
+      { new: true } // Return the updated user document
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    res.status(200).json({ message: 'User debited successfully!' });
   } catch (error) {
-      console.error('Error adding participant:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+    console.error('Error debiting user:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 
 
