@@ -410,56 +410,54 @@ router.get("/userExists/:userIdentification", async (request, response) => {
 
 
 // Check referral code
+// check referral code
 router.get("/checkUserReferral/:userReferral", async (request, response) => { 
   try {
     const userReferralCode = request.params.userReferral;
     const referrerExists = await User.findOne({ referralCode: userReferralCode });
 
     if (referrerExists) {
-      response.status(200).send({
+      response.send({
         referrerInfo: referrerExists,
-        status: "true",
+        status: "true"
       });
     } else {
-      response.status(404).send({
-        status: "false",
-        message: "Referral code not found"
-      });
+      response.status(404).send({ message: "Referral code not found" });
     }
   } catch (error) {
-    response.status(500).send({
-      status: "error",
-      message: "An error occurred while checking the referral code"
-    });
+    response.status(500).send({ message: "An error occurred while checking the referral code" });
   }
 });
 
-// Check agent code
+// check agent code
 router.get("/checkAgentCode/:agentCode", async (request, response) => {
   try {
     const { agentCode } = request.params;
     
+    // Check if the agent code exists
     const agentExists = await User.findOne({ agentCode });
 
     if (agentExists) {
+      // Send a response with the agent data if found
       return response.status(200).send({
         referrerInfo: agentExists,
         status: "true"
       });
     } else {
+      // Send a response with a false status if not found
       return response.status(404).send({
-        status: "false",
         message: "Agent code not found"
       });
     }
   } catch (error) {
+    // Handle unexpected errors with a generic error message and status 500
     console.error(error);
     return response.status(500).send({
-      status: "error",
       message: "An error occurred while checking the agent code"
     });
   }
 });
+
 
 // end of check agent code
 
