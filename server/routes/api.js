@@ -766,22 +766,69 @@ router.delete("/userDetail", async (request, response) => {
   }
 });
 
+// Endpoint to get agentCode by user ID
+router.get('/getAgentCode/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    // Query the database for the user
+    const user = await User.findOne({ userId });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Respond with the agentCode
+    res.status(200).json({ agentCode: user.agentCode });
+  } catch (error) {
+    console.error('Error fetching agentCode:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // Define a schema and model
 const scriptSchema = new mongoose.Schema({
   src: String,
+  agentCode: String,
+  isDefault: Boolean,
 });
 
 const Script = mongoose.model('Script', scriptSchema);
 
 // Fetch the script URL
-router.get('/script', async (req, res) => {
+router.get('/script/:agentCode', async (req, res) => {
   try {
-    const script = await Script.findOne(); // Fetch one script
-    res.json(script);
+    const { agentCode } = req.params;
+
+    if (!agentCode) {
+      return res.status(400).json({ error: 'Agent Code is required' });
+    }
+
+    let script;
+
+    if (agentCode !== 'none') {
+      // Fetch the script based on the provided agentCode
+      script = await Script.findOne({ agentCode });
+    } else {
+      // If agentCode is 'none', return a default script or an error message
+      script = await Script.findOne({ isDefault: true }); // Assuming there's a default script
+    }
+
+    if (!script) {
+      return res.status(404).json({ error: 'Script not found' });
+    }
+
+    res.status(200).json(script);
   } catch (error) {
-    res.status(500).send(error);
+    console.error('Error fetching script:', error);
+    res.status(500).send('Internal Server Error');
   }
 });
+
 
 
 
