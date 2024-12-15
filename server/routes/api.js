@@ -583,7 +583,7 @@ router.get('/getBtcDeposits/:agentID', async (req, res) => {
     // Find BTC deposits made by these users
     const btcDeposits = await PaymentCallback.find({
       description: 'Deposit',
-      userId: { $in: userIds },
+      userID: { $in: userIds },
     });
 
     // Send the filtered BTC deposits
