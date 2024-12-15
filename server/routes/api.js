@@ -417,15 +417,21 @@ router.get("/checkUserReferral/:userReferral", async (request, response) => {
     const referrerExists = await User.findOne({ referralCode: userReferralCode });
 
     if (referrerExists) {
-      response.send({
+      response.status(200).send({
         referrerInfo: referrerExists,
         status: "true"
       });
     } else {
-      response.status(404).send({ message: "Referral code not found" });
+      response.status(200).send({
+        status: "false",
+        message: "Referral code not found"
+      });
     }
   } catch (error) {
-    response.status(500).send({ message: "An error occurred while checking the referral code" });
+    response.status(200).send({
+      status: "error",
+      message: "An error occurred while checking the referral code"
+    });
   }
 });
 
@@ -438,21 +444,20 @@ router.get("/checkAgentCode/:agentCode", async (request, response) => {
     const agentExists = await User.findOne({ agentCode });
 
     if (agentExists) {
-      // Send a response with the agent data if found
       return response.status(200).send({
         referrerInfo: agentExists,
         status: "true"
       });
     } else {
-      // Send a response with a false status if not found
-      return response.status(404).send({
+      return response.status(200).send({
+        status: "false",
         message: "Agent code not found"
       });
     }
   } catch (error) {
-    // Handle unexpected errors with a generic error message and status 500
     console.error(error);
-    return response.status(500).send({
+    return response.status(200).send({
+      status: "error",
       message: "An error occurred while checking the agent code"
     });
   }
