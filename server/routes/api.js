@@ -78,6 +78,7 @@ router.post("/addUser", async (request, response) => {
 const PaymentCallbackSchema = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now }, // Timestamp of the callback
   userID: String,
+  username: String,
   payment_status: String,
   pay_address: String,
   price_amount: Number,
@@ -486,6 +487,7 @@ const transactionSchema = new mongoose.Schema({
   email: String,
   amount: Number,
   userID: String,
+  username: String,
   status: String,
   timestamp: Date,
   transactionsType: String,
