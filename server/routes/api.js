@@ -441,7 +441,7 @@ router.get("/checkAgentCode/:agentCode", async (request, response) => {
     const { agentCode } = request.params;
     
     // Check if the agent code exists
-    const agentExists = await User.findOne({ agentCode });
+    const agentExists = await User.findOne({ agentID: agentCode });
 
     if (agentExists) {
       return response.status(200).send({
