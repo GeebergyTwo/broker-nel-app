@@ -10,6 +10,7 @@ const schema = new mongoose.Schema({
     referralCode : String,
     agentID: String,
     agentCode: String,
+    isOwner: Boolean,
     referredUsers : Number,
     referredBy: String,
     referralRedeemed: Boolean,
