@@ -849,23 +849,19 @@ router.get('/users', async (req, res) => {
 
 router.put('/users/:id', async (req, res) => {
   try {
-    const { id } = req.params;
-    const { name, email, balance } = req.body;
+    const userId = req.params.id;  // Assuming the ID is passed in the URL
+    const updatedUser = req.body;
 
-    const updatedUser = await User.findByIdAndUpdate(
-      id,
-      { name, email, balance },
-      { new: true }
-    );
+    // Ensure the ID is valid and exists
+    const user = await User.findByIdAndUpdate(userId, updatedUser, { new: true });
 
-    if (!updatedUser) {
-      return res.status(404).json({ error: 'User not found.' });
+    if (!user) {
+      return res.status(404).send('User not found');
     }
 
-    res.status(200).json(updatedUser);
+    res.json(user);
   } catch (error) {
-    console.error('Error updating user:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(400).send('Error updating user: ' + error.message);
   }
 });
 
