@@ -409,49 +409,50 @@ router.get("/userExists/:userIdentification", async (request, response) => {
 });
 
 
-// check referral code
+// Check referral code
 router.get("/checkUserReferral/:userReferral", async (request, response) => { 
   try {
     const userReferralCode = request.params.userReferral;
-    const referrerExists = await User.findOne({ referralCode: userReferralCode});
+    const referrerExists = await User.findOne({ referralCode: userReferralCode });
 
-    if(referrerExists){
-      response.send({"referrerInfo": referrerExists,
-      "status": "true",
-    })
-    }
-    else{
-      response.send({"status": "false"})
+    if (referrerExists) {
+      response.status(200).send({
+        referrerInfo: referrerExists,
+        status: "true",
+      });
+    } else {
+      response.status(404).send({
+        status: "false",
+        message: "Referral code not found"
+      });
     }
   } catch (error) {
-    response.status(500).send(error);
+    response.status(500).send({
+      status: "error",
+      message: "An error occurred while checking the referral code"
+    });
   }
 });
-// end of check referral code
 
-// check agent code
+// Check agent code
 router.get("/checkAgentCode/:agentCode", async (request, response) => {
   try {
     const { agentCode } = request.params;
     
-    // Check if the agent code exists
     const agentExists = await User.findOne({ agentCode });
 
     if (agentExists) {
-      // Send a response with the agent data if found
       return response.status(200).send({
         referrerInfo: agentExists,
         status: "true"
       });
     } else {
-      // Send a response with a false status if not found
       return response.status(404).send({
         status: "false",
         message: "Agent code not found"
       });
     }
   } catch (error) {
-    // Handle unexpected errors with a generic error message and status 500
     console.error(error);
     return response.status(500).send({
       status: "error",
@@ -459,7 +460,6 @@ router.get("/checkAgentCode/:agentCode", async (request, response) => {
     });
   }
 });
-
 
 // end of check agent code
 
