@@ -7,7 +7,7 @@ const { MongoClient } = require('mongodb');
 const cron = require('node-cron');
 const axios = require('axios');
 
-const uri = "mongodb+srv://minterproorg:MintOrg1411@broker.ii4wb.mongodb.net/userData?retryWrites=true&w=majority";
+const uri = process.env.uri;
 // const uri = "mongodb+srv://nexusfxinvestmentblog:nexusfxpassword@nexusfx.mjiu6l6.mongodb.net/userData?retryWrites=true&w=majority";
 
 async function connectToMongoDB() {
