@@ -688,14 +688,37 @@ router.put('/updateUserBalance/:transactionId', async (request, response) => {
 
 // // GET BTC WITHDRAWAL TX
 // get pending deposits and transactions
-router.get('/getBtcWithdrawals', async (req, res) => {
+// Get BTC withdrawal requests based on agentID
+router.get('/getBtcWithdrawals/:agentID', async (req, res) => {
   try {
-    const btcDeposits = await PaymentCallback.find({description: 'Withdrawal'});
-    res.json(btcDeposits);
+    const agentID = req.params.agentID;
+
+    if (!agentID) {
+      return res.status(400).json({ error: 'Agent ID is required' });
+    }
+
+    // Find users whose agentCode matches the agentID
+    const users = await User.find({ agentCode: agentID });
+    const userIds = users.map(user => user.userId);
+
+    if (userIds.length === 0) {
+      return res.status(404).json({ error: 'No users found for this agent' });
+    }
+
+    // Find BTC withdrawal requests made by these users
+    const btcWithdrawals = await PaymentCallback.find({
+      description: 'Withdrawal',
+      userID: { $in: userIds },
+    });
+
+    // Send the filtered BTC withdrawals
+    res.status(200).json(btcWithdrawals);
   } catch (error) {
+    console.error('Error fetching BTC withdrawals:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 
 // handling crypto account activation
