@@ -566,7 +566,7 @@ router.get('/getUserTransactions', async (request, response) => {
 router.get('/getBtcDeposits/:agentID', async (req, res) => {
   try {
     // Get the current user's agentID (modify based on your authentication setup)
-    const agentID = request.params.agentID;
+    const agentID = req.params.agentID;
 
     if (!agentID) {
       return res.status(400).json({ error: 'Agent ID is required' });
