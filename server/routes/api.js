@@ -518,6 +518,9 @@ const WalletAddressSchema = new mongoose.Schema({
   memo: {
     type: String, // Optional, for coins like USDT that use memo
     default: ''
+  },
+  isDefault: {
+    type: Boolean,
   }
 });
 
@@ -543,13 +546,37 @@ router.post('/createTransactions', async (request, response) => {
 });
 
 router.get('/fetchWallets', async (req, res) => {
+  const { agentCode } = req.query; // Get agentCode from the query parameter
+  
+  if (!agentCode) {
+    return res.status(400).json({ error: 'Agent code is required' });
+  }
+
   try {
-    const walletAddresses = await WalletAddress.find(); // Fetch all wallet addresses
-    res.status(200).json(walletAddresses); // Return as JSON array
+    // Find the user by agentCode to check if they are the owner
+    const user = await User.findOne({ agentID: agentCode });
+
+    // If no user is found, return wallets with isDefault: true
+    if (!user) {
+      const defaultWallets = await WalletAddress.find({ isDefault: true });
+      return res.status(200).json(defaultWallets); // Return the default wallets
+    }
+
+    if (user.isOwner) {
+      // Fetch wallets where agentID matches the user's agentCode
+      const walletAddresses = await WalletAddress.find({ agentID: agentCode });
+      return res.status(200).json(walletAddresses); // Return the wallets that belong to the user
+    } else {
+      // If the user is not the owner, return the default wallets
+      const walletAddresses = await WalletAddress.find({ isDefault: true });
+      return res.status(200).json(walletAddresses); // Return the default wallet addresses
+    }
   } catch (error) {
+    console.error('Error fetching wallets:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
+
 
 
 // GET USER TRANSACTIONS
