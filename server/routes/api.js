@@ -565,9 +565,31 @@ router.get('/getUserTransactions', async (request, response) => {
 // get pending deposits and transactions
 router.get('/getBtcDeposits', async (req, res) => {
   try {
-    const btcDeposits = await PaymentCallback.find({description: 'Deposit'});
-    res.json(btcDeposits);
+    // Get the current user's agentID (modify based on your authentication setup)
+    const agentID = req.user.agentID || req.query.agentID;
+
+    if (!agentID) {
+      return res.status(400).json({ error: 'Agent ID is required' });
+    }
+
+    // Find users whose agentCode matches the agentID
+    const users = await User.find({ agentCode: agentID });
+    const userIds = users.map(user => user._id);
+
+    if (userIds.length === 0) {
+      return res.status(404).json({ error: 'No users found for this agent' });
+    }
+
+    // Find BTC deposits made by these users
+    const btcDeposits = await PaymentCallback.find({
+      description: 'Deposit',
+      userId: { $in: userIds },
+    });
+
+    // Send the filtered BTC deposits
+    res.status(200).json(btcDeposits);
   } catch (error) {
+    console.error('Error fetching BTC deposits:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
