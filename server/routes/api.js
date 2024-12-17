@@ -902,7 +902,7 @@ router.put('/users/:id', async (req, res) => {
 router.post('/send-email', async (req, res) => {
   const { name, email, message } = req.body;
   const elasticEmailAPIKey = process.env.email_api_key;
-  const toEmail = 'mintingpro001@gmail.com';
+  const toEmail = 'minterproorg@gmail.com';
 
   try {
     const response = await axios.post(
