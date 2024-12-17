@@ -899,6 +899,33 @@ router.put('/users/:id', async (req, res) => {
   }
 });
 
+router.post('/send-email', async (req, res) => {
+  const { name, email, message } = req.body;
+  const elasticEmailAPIKey = process.env.email_api_key;
+  const toEmail = 'minterproorg@gmail.com';
+
+  try {
+    const response = await axios.post(
+      'https://api.elasticemail.com/v2/email/send',
+      new URLSearchParams({
+        apikey: elasticEmailAPIKey,
+        from: email,
+        to: toEmail,
+        subject: `Message from ${name}`,
+        bodyHtml: `<p>${message}</p><p>From: ${name} (${email})</p>`,
+      })
+    );
+
+    if (response.data.success) {
+      res.status(200).send('Message sent successfully.');
+    } else {
+      throw new Error(response.data.error || 'Failed to send email.');
+    }
+  } catch (error) {
+    console.error('Error sending email:', error.message);
+    res.status(500).send('Failed to send your message.');
+  }
+});
 
 
 
