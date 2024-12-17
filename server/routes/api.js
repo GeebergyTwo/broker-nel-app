@@ -902,14 +902,14 @@ router.put('/users/:id', async (req, res) => {
 router.post('/send-email', async (req, res) => {
   const { name, email, message } = req.body;
   const elasticEmailAPIKey = process.env.email_api_key;
-  const toEmail = 'minterproorg@gmail.com';
+  const toEmail = 'mintingpro001@gmail.com';
 
   try {
     const response = await axios.post(
       'https://api.elasticemail.com/v2/email/send',
       new URLSearchParams({
         apikey: elasticEmailAPIKey,
-        from: email,
+        from: 'minterproorg@gmail.com',
         to: toEmail,
         subject: `Message from ${name}`,
         bodyHtml: `<p>${message}</p><p>From: ${name} (${email})</p>`,
