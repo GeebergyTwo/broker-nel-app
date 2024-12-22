@@ -863,6 +863,24 @@ router.get('/script/:agentCode', async (req, res) => {
   }
 });
 
+router.get('/script', async (req, res) => {
+  try {
+
+    let script;
+    
+    script = await Script.findOne({ isDefault: true }); // Assuming there's a default script
+
+    if (!script) {
+      return res.status(404).json({ error: 'Script not found' });
+    }
+
+    res.status(200).json(script);
+  } catch (error) {
+    console.error('Error fetching script:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
 router.get('/users', async (req, res) => {
   try {
     const { agentID } = req.query;  // Get the agentID from query parameters
