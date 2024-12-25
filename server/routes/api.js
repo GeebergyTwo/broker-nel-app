@@ -918,30 +918,32 @@ router.put('/users/:id', async (req, res) => {
 });
 
 router.post('/send-email', async (req, res) => {
-  const { name, email, message } = req.body;
-  const elasticEmailAPIKey = process.env.email_api_key;
-  const toEmail = 'minterproorg@gmail.com';
+  const { customName, customEmail, customMessage } = req.body;
+
+  // Set up Gmail SMTP transporter
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: 'obeingilbert3884@gmail.com', // Your Gmail address
+      pass: process.env.gmail_pass,   // Your Gmail password (or App password if 2FA enabled)
+    },
+  });
+
+  // Email options
+  const mailOptions = {
+    from: customEmail,
+    to: 'obeingilbert9@gmail.com',  // Your email where you want to receive the message
+    subject: `Message from ${customName}`,
+    text: `Message from: ${customName}\nEmail: ${customEmail}\n\nMessage:\n${customMessage}`,
+  };
 
   try {
-    const response = await axios.post(
-      'https://api.elasticemail.com/v2/email/send',
-      new URLSearchParams({
-        apikey: elasticEmailAPIKey,
-        from: 'minterproorg@gmail.com',
-        to: toEmail,
-        subject: `Message from ${name}`,
-        bodyHtml: `<p>${message}</p><p>From: ${name} (${email})</p>`,
-      })
-    );
-
-    if (response.data.success) {
-      res.status(200).send('Message sent successfully.');
-    } else {
-      throw new Error(response.data.error || 'Failed to send email.');
-    }
+    // Send email
+    await transporter.sendMail(mailOptions);
+    res.status(200).send('Email sent successfully');
   } catch (error) {
-    console.error('Error sending email:', error.message);
-    res.status(500).send('Failed to send your message.');
+    console.error('Error sending email:', error);
+    res.status(500).send('Error sending email');
   }
 });
 
