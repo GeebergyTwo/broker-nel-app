@@ -634,7 +634,7 @@ router.get('/getBtcDeposits/:agentID', async (req, res) => {
 router.put('/updatePaymentStatusAndDelete/:transactionId', async (request, response) => {
   try {
     const { transactionId } = request.params;
-    const { newStatus, userId } = request.body;
+    const { newStatus, userId, amount } = request.body;
 
     // Update payment status in the database
     await Transaction.findOneAndUpdate(
@@ -656,7 +656,7 @@ router.put('/updatePaymentStatusAndDelete/:transactionId', async (request, respo
           { userId },
           {
             $set: { isUserActive: true, referralRedeemed: true, hasPaid: true },
-            $inc: { deposit: 20, dailyDropBalance: 10 }
+            $inc: { deposit: amount }
           }
         );
       } else {
@@ -665,7 +665,7 @@ router.put('/updatePaymentStatusAndDelete/:transactionId', async (request, respo
           { userId },
           {
             $set: { isUserActive: true, referralRedeemed: true, hasPaid: true },
-            $inc: { deposit: 20 }
+            $inc: { deposit: amount }
           }
         );
       }
@@ -774,7 +774,7 @@ router.put('/updateUserWithdrawal/:transactionId', async (request, response) => 
         await User.updateOne(
           { userId },
           {
-            $inc: { referralsBalance: -price_amount }
+            $inc: { balance: -price_amount }
           }
         );
       }
