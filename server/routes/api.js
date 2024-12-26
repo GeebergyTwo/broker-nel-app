@@ -769,15 +769,6 @@ router.put('/updateUserWithdrawal/:transactionId', async (request, response) => 
       { new: true }
     );
 
-    // Update current user's account balance
-      if(newStatus === 'success'){
-        await User.updateOne(
-          { userId },
-          {
-            $inc: { balance: -price_amount }
-          }
-        );
-      }
       
 
     // Delete the document
