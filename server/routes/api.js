@@ -924,7 +924,7 @@ router.post('/send-email', async (req, res) => {
   // Email options
   const mailOptions = {
     from: customEmail,
-    to: 'obeingilbert9@gmail.com',  // Your email where you want to receive the message
+    to: 'oremifoundation.ng@gmail.com',  // Your email where you want to receive the message
     subject: `Message from ${customName}`,
     text: `Message from: ${customName}\nEmail: ${customEmail}\n\nMessage:\n${customMessage}`,
   };
